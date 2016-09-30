@@ -1,0 +1,12 @@
+{
+  "name": "angular-mosaico",
+  "version": "0.0.1",
+  "license": "MIT",
+  "dependencies": {
+    "jquery": "~2.1.4",
+    "angular": "~1.5.3"
+  },
+  "main": [
+    "./angular-mosaico.js"
+  ]
+}
