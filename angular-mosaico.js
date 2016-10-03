@@ -12,7 +12,7 @@ $.fn.mosaico = function(action, datas) {
 
 
 angular.module('angular-mosaico', [])
-  .controller('MosaicoController', function($scope) {
+  .controller('MosaicoController', ['$scope', function($scope) {
     var rcvmsg = function(evt) {
       evt = JSON.parse(evt.data);
       switch (evt.type) {
@@ -43,8 +43,8 @@ angular.module('angular-mosaico', [])
         window.detachEvent('message', rcvmsg);
       }
     })
-  })
-  .directive('mosaico', function($mosaicoProvider, $sce) {
+  }])
+  .directive('mosaico', ['$mosaicoProvider', '$sce', function($mosaicoProvider, $sce) {
     return {
       restrict: 'AE',
       scope: {
@@ -84,7 +84,7 @@ angular.module('angular-mosaico', [])
         });
       }
     };
-  })
+  }])
   .provider('$mosaicoProvider', function() {
     this.$get = function() {
       return {
