@@ -44,7 +44,44 @@ angular.module('angular-mosaico', [])
       }
     })
   }])
-  .directive('mosaico', ['$mosaicoProvider', '$sce', function($mosaicoProvider, $sce) {
+  .provider('$mosaico', function() {
+
+    this.locale = 'fr';
+    this.editorUrl = null;
+    this.httpHeaders = null;
+    this.removePreviewFooter = false;
+    this.plugins = null;
+    this.options = null;
+
+    this.setLocale = function(locale) {
+      this.locale = locale;
+    };
+
+    this.setEditorUrl = function(url) {
+      this.editorUrl = url;
+    };
+
+    this.setHttpHeaders = function(headers) {
+      this.httpHeaders = headers;
+    };
+
+    this.setRemovePreviewFooter = function(previewFooter) {
+      this.removePreviewFooter = previewFooter;
+    };
+
+    this.setPlugins = function(plugins) {
+      this.plugins = plugins;
+    };
+
+    this.setOptions = function(options) {
+      this.options = options;
+    };
+
+    this.$get = function() {
+      return this;
+    };
+  })
+  .directive('mosaico', ['$mosaico', '$sce', function($mosaicoProvider, $sce) {
     return {
       restrict: 'AE',
       scope: {
@@ -55,7 +92,9 @@ angular.module('angular-mosaico', [])
         defaultJsonMetadata: '=', //default JSON metadata of template to load
         defaultJsonContent: '=', //default JSON content of template to load
         onHtmlExport: '&', //callback to execute when html is exported
-        removePreviewFooter: '=' //remove footer with sponsor image when click on preview button
+        removePreviewFooter: '=', //remove footer with sponsor image when click on preview button
+        plugins: '=', //plugins like tinymce or basic mosaico plugin
+        options: '=' //window mosaico options
       },
       controller: 'MosaicoController',
       link: function(scope, elem, attrs) {
@@ -73,25 +112,21 @@ angular.module('angular-mosaico', [])
           iframe.style.width = "100%";
           iframe.style.height = "700px";
           $(iframe).on('load', function() {
+            var plugins = scope.plugins || $mosaicoProvider.plugins;
+            if (typeof plugins == 'function') {
+              plugins = (plugins)();
+            }
             $(iframe).mosaico('init', {
               locale: $mosaicoProvider.locale,
               content: scope.defaultJsonContent,
               metadata: scope.defaultJsonMetadata,
               headers: $mosaicoProvider.httpHeaders,
-              removePreviewFooter: scope.removePreviewFooter || $mosaicoProvider.removePreviewFooter
+              removePreviewFooter: scope.removePreviewFooter || $mosaicoProvider.removePreviewFooter,
+              plugins: plugins,
+              options: scope.options || $mosaicoProvider.options
             });
           });
         });
       }
     };
-  }])
-  .provider('$mosaicoProvider', function() {
-    this.$get = function() {
-      return {
-        locale: 'fr',
-        editorUrl: null,
-        httpHeaders: null,
-        removePreviewFooter: false
-      }
-    };
-  });
+  }]);
