@@ -113,7 +113,7 @@ angular.module('angular-mosaico', [])
           iframe.style.height = "700px";
           $(iframe).on('load', function() {
             var plugins = scope.plugins || $mosaicoProvider.plugins;
-            if (typeof plugins == 'function') {
+            if (jQuery.isFunction(plugins)) {
               plugins = (plugins)();
             }
             $(iframe).mosaico('init', {
