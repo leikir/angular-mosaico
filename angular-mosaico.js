@@ -10,7 +10,10 @@ $.fn.mosaico = function(action, datas) {
   }
   datas.action = action;
 
-  // choose an ID
+  // create a promise
+  var deferred = $.Deferred();
+
+  // choose an ID for it
   var promiseId = 0 + nextPromiseId;
   nextPromiseId++;
 
@@ -18,38 +21,52 @@ $.fn.mosaico = function(action, datas) {
   datas.promiseId = promiseId;
 
   // create the promise and store it in promises
-  var deferred = $.Deferred();
-  promises[promiseId] = deferred.promise();
+  promises[promiseId] = deferred;
 
   // send the message
   this.get(0).contentWindow.postMessage(JSON.stringify(datas), '*');
 
-  // return the promise
-  return promises[promiseId];
+  // return callback-only object for the promise
+  return deferred.promise();
 };
 
 angular.module('angular-mosaico', [])
   .controller('MosaicoController', ['$scope', function($scope) {
     var rcvmsg = function(evt) {
+      // extract message data
       var data = JSON.parse(evt.data);
 
       // find the related promise
-      var promise = promises[data.promiseId];
+      var deferred = promises[data.promiseId];
 
       switch (data.type) {
 
         case 'wysiwygLoaded':
+          // dispatch the event
           window.dispatchEvent(new Event('mosaicoFrameLoaded'));
-          promise.resolve();
+
+          // resolve the promise if exists
+          if (deferred) {
+            deferred.resolve();
+          }
+
+          // done
           break;
 
         case 'exportHTML':
+          // dispatch the result
           $scope.htmlContentModel = data.htmlContent;
           $scope.jsonMetadataModel = data.jsonMetadata;
           $scope.jsonContentModel = data.jsonContent;
           $scope.$apply();
           $scope.onHtmlExport();
-          promise.resolve();
+
+          // resolve the promise if exists
+          if (deferred) {
+            deferred.resolve();
+          }
+
+          // done
           break;
       }
     };
