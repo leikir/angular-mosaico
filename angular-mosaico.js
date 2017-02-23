@@ -1,30 +1,72 @@
 'use strict';
 
+var promises = {};
+var nextPromiseId = 0;
 
 // jQuery helper to communicate with mosaico frame
 $.fn.mosaico = function(action, datas) {
   if (!datas) {
     datas = {};
   }
-  datas['action'] = action;
-  this.get(0).contentWindow.postMessage(JSON.stringify(datas), '*');
-};
+  datas.action = action;
 
+  // create a promise
+  var deferred = $.Deferred();
+
+  // choose an ID for it
+  var promiseId = 0 + nextPromiseId;
+  nextPromiseId++;
+
+  // store the ID in the message data so that we get it in response
+  datas.promiseId = promiseId;
+
+  // create the promise and store it in promises
+  promises[promiseId] = deferred;
+
+  // send the message
+  this.get(0).contentWindow.postMessage(JSON.stringify(datas), '*');
+
+  // return callback-only object for the promise
+  return deferred.promise();
+};
 
 angular.module('angular-mosaico', [])
   .controller('MosaicoController', ['$scope', function($scope) {
     var rcvmsg = function(evt) {
-      evt = JSON.parse(evt.data);
-      switch (evt.type) {
+      // extract message data
+      var data = JSON.parse(evt.data);
+
+      // find the related promise
+      var deferred = promises[data.promiseId];
+
+      switch (data.type) {
+
         case 'wysiwygLoaded':
+          // dispatch the event
           window.dispatchEvent(new Event('mosaicoFrameLoaded'));
+
+          // resolve the promise if exists
+          if (deferred) {
+            deferred.resolve();
+          }
+
+          // done
           break;
+
         case 'exportHTML':
-          $scope.htmlContentModel = evt.htmlContent;
-          $scope.jsonMetadataModel = evt.jsonMetadata;
-          $scope.jsonContentModel = evt.jsonContent;
+          // dispatch the result
+          $scope.htmlContentModel = data.htmlContent;
+          $scope.jsonMetadataModel = data.jsonMetadata;
+          $scope.jsonContentModel = data.jsonContent;
           $scope.$apply();
           $scope.onHtmlExport();
+
+          // resolve the promise if exists
+          if (deferred) {
+            deferred.resolve();
+          }
+
+          // done
           break;
       }
     };
@@ -113,7 +155,7 @@ angular.module('angular-mosaico', [])
           iframe.style.height = "700px";
           $(iframe).on('load', function() {
             var plugins = scope.plugins || $mosaicoProvider.plugins;
-            if (typeof plugins == 'function') {
+            if (jQuery.isFunction(plugins)) {
               plugins = (plugins)();
             }
             $(iframe).mosaico('init', {
@@ -123,7 +165,7 @@ angular.module('angular-mosaico', [])
               headers: $mosaicoProvider.httpHeaders,
               removePreviewFooter: scope.removePreviewFooter || $mosaicoProvider.removePreviewFooter,
               plugins: plugins,
-              options: scope.options || $mosaicoProvider.options
+              options: scope.options || $mosaicoProvider.options,
             });
           });
         });
