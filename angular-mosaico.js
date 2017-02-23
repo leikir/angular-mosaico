@@ -43,7 +43,15 @@ angular.module('angular-mosaico', [])
 
         case 'wysiwygLoaded':
           // dispatch the event
-          window.dispatchEvent(new Event('mosaicoFrameLoaded'));
+          var evt;
+          if (typeof(Event) !== "undefined") {
+            evt = new Event('mosaicoFrameLoaded');
+          }
+          else {
+            evt = document.createEvent('Event');
+            evt.initEvent('mosaicoFrameLoaded', true, false);
+          }
+          window.dispatchEvent(evt);
 
           // resolve the promise if exists
           if (deferred) {
