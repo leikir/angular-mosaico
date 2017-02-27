@@ -44,7 +44,7 @@ angular.module('angular-mosaico', [])
         case 'wysiwygLoaded':
           // dispatch the event
           var evt;
-          if (typeof(Event) !== "undefined") {
+          if (typeof(window.Event) === "function") {
             evt = new Event('mosaicoFrameLoaded');
           }
           else {
