@@ -67,7 +67,6 @@ angular.module('angular-mosaico', [])
           $scope.jsonMetadataModel = data.jsonMetadata;
           $scope.jsonContentModel = data.jsonContent;
           $scope.$apply();
-          $scope.onHtmlExport();
 
           // resolve the promise if exists
           if (deferred) {
@@ -141,7 +140,6 @@ angular.module('angular-mosaico', [])
         jsonContentModel: '=', //exported JSON content of template
         defaultJsonMetadata: '=', //default JSON metadata of template to load
         defaultJsonContent: '=', //default JSON content of template to load
-        onHtmlExport: '&', //callback to execute when html is exported
         removePreviewFooter: '=', //remove footer with sponsor image when click on preview button
         plugins: '=', //plugins like tinymce or basic mosaico plugin
         options: '=' //window mosaico options
